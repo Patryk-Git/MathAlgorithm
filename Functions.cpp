@@ -4,29 +4,8 @@
 
 using namespace std;
 
-int GetValue(){
-     int firstPower, NextToXValue, constantTerm;
-    printf("Podaj wartosc najwyzszej potegi: ");
-    cin >> firstPower;
-    if(firstPower==0){
-        while(firstPower <= 0){
-            printf("Pierwsza potega nie moze wynosic 0!");
-            cin >> firstPower;
-        }
-    }
-    printf("Podaj liczbe stojaca przed x do potegi %d: ", firstPower);
-    cin >> NextToXValue;
-    if(NextToXValue==0){
-        while(NextToXValue <= 0){
-            printf("Pierwsza wartosc przy x nie moze wynosic 0!\nPodaj jeszcze raz! " );
-            cin >> NextToXValue;
-        }
-    }
 
-    return firstPower, NextToXValue, constantTerm;
-}
-
-float CalculatePoint(int power[], int value[], int tabSize, int constantTerm){
+float CalculatePoint(int *power, int *value, int tabSize, int constantTerm){
     
     int point;
     tabSize -= 1;
@@ -41,10 +20,10 @@ float CalculatePoint(int power[], int value[], int tabSize, int constantTerm){
             result = (result*point) + constantTerm;
         }
     }
-    return result;
+    cout << "Wartosc dla punktu wynosi: " << result << endl;
 }
 
-int IsZeroFunction(int power[], int value[], int zeroIndex[], int tabSize){
+int IsZeroFunction(int *power, int *value, int *zeroIndex, int tabSize){
     bool isZero = false;
     for(int i = 0; i < tabSize; i++){
         if(power[i] == 0 || value[i] == 0){
@@ -57,18 +36,18 @@ int IsZeroFunction(int power[], int value[], int zeroIndex[], int tabSize){
             if(power[i] == 0 || value[i] == 0){
                 zeroIndex[i] = -1;
             }else zeroIndex[i] = 1;
-
         }
     }
 }
-void PrintFunction(int power[], int value[], int constantTerm, int tabSize){
+
+void PrintFunction(int *power, int *value, int constantTerm, int tabSize, bool check){
     string function = "";
     int *zeroIndex = new int[tabSize];
     IsZeroFunction(power, value, zeroIndex, tabSize);
     printf("Twoja funkcja to: \n");
     for(int i = tabSize; i >= 0; i--){
 
-        if(value[i] > 0 && zeroIndex[i] != -1){
+        if(value[i] > 0 && zeroIndex[i] != -1 && power[i] > 0){
             if(i!=0){
                  function += to_string(value[i]) + "x^^" + to_string(power[i]) + " + ";
             }
@@ -81,43 +60,93 @@ void PrintFunction(int power[], int value[], int constantTerm, int tabSize){
                      function += to_string(value[i]) + "x^^" + to_string(power[i]);
                 }
             }
-        }else if(value[i] < 0 && zeroIndex[i] != -1 && constantTerm != 0){
+        }
+        else if(value[i] < 0 && zeroIndex[i] != -1 && constantTerm != 0){
             function += to_string(value[i]) + "x^^" + to_string(power[i]) + " ";
         }
     }
-    cout << function << endl;
-    for (int i = 0; i < tabSize; i++ ){
-        cout << value[i];
+    if(!check){
+        cout << function;
+    }else{
+        function += to_string(constantTerm);
+        cout << function;
     }
-    cout << "\n\n\n";
-    for (int i = 0; i < tabSize; i++ ){
-        cout << power[i];
-    }
-
+    
+    delete zeroIndex;
 }
-void HornerPointValue(int power[], int value[], int firstPower, int nextToXValue, int constantTerm){
 
-    int b;
-    for(int i = 0; i < firstPower; i++){
-        power[i] = 0;
-        value[i] = 0;
+void Divide(int *power, int* value, int tabSize, int constantTerm, int val){
+    
+    int *newValue = new int[tabSize-1];  
+    int *newPower = new int[tabSize-1];
+    int *isZero = new int[tabSize-1]; 
+    bool check = true; 
+    int temp = value[tabSize-1];
+    for(int i = 0; i <= tabSize; i++){
+        newValue[i] = 1;
+        newPower[i] = 0;
     }
-    power[firstPower-1] = firstPower;
-    value[firstPower-1] = nextToXValue;
-    for(int i=1; i<firstPower; i++){
-        printf("Podaj nastepna potege x: ");
+    newValue[tabSize] = temp;
+    for(int i = tabSize-1; i > 0; i--){
+            if(power[i-1] > 0) {newPower[i] = power[i-1];}
+            temp = (val * temp) + value[i-1];
+            newValue[i-1] = temp;
+    }
+    PrintFunction(newPower, newValue, temp, tabSize-1, check);
+    int change = (val * temp) + constantTerm;
+    if(check != 0){
+         cout << "\nReszta wynosi: " << check << endl;
+     }
+
+     delete newValue, newPower, isZero;
+}
+
+
+int HornerPointValue(){
+
+    int a, b, NextToXValue, constantTerm;
+    printf("Podaj wartosc najwyzszej potegi: ");
+    cin >> a;
+    if(a==0){
+        while(a <= 0){
+            printf("Pierwsza potega nie moze wynosic 0!");
+            cin >> a;
+        }
+    }
+    printf("Podaj liczbe stojaca przed x do potegi %d: ", a);
+    cin >> NextToXValue;
+    if(NextToXValue==0){
+        while(NextToXValue <= 0){
+            printf("Pierwsza wartosc przy x nie moze wynosic 0!\nPodaj jeszcze raz! " );
+            cin >> NextToXValue;
+        }
+    }
+    int *power =  new int[a];
+    int *value = new int[a];
+    for(int i = 0; i <= a; i++){
+        power[i] = 0;
+        value[i] = 1;
+    }
+    power[a-1] = a;
+    value[a-1] = NextToXValue;
+    for(int i=1; i<a; i++){
+        printf("\nPodaj nastepna potege x: ");
         cin >> b;
-        if(b > 0) power[firstPower-1] = b;
-        printf("Podaj liczba stojaca przy tym x: ");
-        cin >> nextToXValue;
-        value[firstPower-1] = nextToXValue;
+        if(b > 0) power[b-1] = b;
+        printf("\nPodaj liczba stojaca przy tym x: ");
+        cin >> NextToXValue;
+        value[b-1] = NextToXValue;
         if(b <= 1) break;
     }
     printf("Podaj wyraz wolny: ");
     cin >> constantTerm;
-    PrintFunction(power, value, constantTerm, firstPower);
-    
-    printf("Wartosc w punkcie wynosi: %.2f", CalculatePoint(power, value, firstPower, constantTerm));
+    PrintFunction(power, value, constantTerm, a, false);
+    cout << endl;
+    CalculatePoint(power, value, a, constantTerm);
+    Divide(power, value, a, constantTerm, 2);
+
+    delete power, value;
 }
+
 
 
